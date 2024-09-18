@@ -1,0 +1,3 @@
+var documenterSearchIndex = {"docs":
+[{"location":"api.html","page":"API","title":"API","text":"```@meta\nCurrentModule = Tapir\n```\n\n```@contents\nPages = [\"api.md\"]\n```\n\n# API\nThis page is a dump of all the docstrings found in the code. \n\n```@autodocs\nModules = [Tapir]\nOrder = [:module, :type, :function, :macro]\n```","category":"page"},{"location":"index.html#Tapir.jl","page":"Introduction","title":"Tapir.jl","text":"","category":"section"},{"location":"index.html#Overview","page":"Introduction","title":"Overview","text":"","category":"section"},{"location":"index.html","page":"Introduction","title":"Introduction","text":"I will put more docs here","category":"page"}]
+}
