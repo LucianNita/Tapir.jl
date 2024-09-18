@@ -3,4 +3,4 @@ using Tapir
 using Test
 
 # Test scripts
-include(test1.jl)
+include("test1.jl")
