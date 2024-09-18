@@ -11,6 +11,6 @@ makedocs(
 )
 
 deploydocs(
-    repo = "https://github.com/LucianNita/Tapir.jl.git",
+    repo = "github.com/LucianNita/Tapir.jl.git",
     devbranch = "main"
 )
