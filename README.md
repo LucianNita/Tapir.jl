@@ -2,6 +2,6 @@
 [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://luciannita.github.io/Tapir.jl/dev)
 [![CI](https://github.com/LucianNita/Tapir.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/LucianNita/Tapir.jl/actions/workflows/CI.yml)
 
-#Tapir.jl 
+# Tapir.jl 
 
 Note only works on Linux. If windows or Mac, create VM. Follow instructions from link
