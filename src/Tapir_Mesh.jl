@@ -4,6 +4,9 @@ mutable struct Tapir_mesh
     Pu::Integer
     Q::Integer
 
+    model.mesh.st_len_x::Int
+    model.mesh.st_len_u::Int
+
     outer_mesh::Vector{Float64}
     inner_x::Vector{Float64}
     inner_u::Vector{Float64}
@@ -20,9 +23,21 @@ mutable struct Tapir_mesh
     evalUX::Vector{Float64}
 
     Dx::Matrix{Float64}
-    SEQUOIA_Settings(N,Px,Pu,Q) = new(N, Px, Pu, Q) 
+    Tapir_mesh(N,Px,Pu,Q) = new(N, Px, Pu, Q) 
 end
 
+function set_length!(model)
+    model.mesh.st_len_x=model.nx*(model.mesh.Px+1);
+    model.mesh.st_len_u=model.nu*(model.mesh.Pu+1);
+
+    if model.settings.cont_type_x=="samevar"
+        model.mesh.st_len_x=st_len_x-model.nx;
+    end
+
+    if model.settings.cont_type_u=="samevar"
+        model.mesh.st_len_u=st_len_u-model.nu;
+    end
+end
 
 function generate_quad!(mesh, quad_type; check_Q=2*mesh.Q)
     if quad_type=="gausslegendre"

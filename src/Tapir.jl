@@ -2,8 +2,9 @@ module Tapir
 
 using JuMP
 using Ipopt
+using FastGaussQuadrature
 using QuadGK
 
-greet() = print("Hello World!")
+include();
 
 end # module Tapir
