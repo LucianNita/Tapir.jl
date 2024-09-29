@@ -1,7 +1,7 @@
 using Plots
 
 function plot_x(model::Tapir_model)
-    p=plot();
+    p=Plots.plot();
     X=model.solution.X;
     T=model.solution.T;
     for i=1:model.mesh.N
@@ -17,16 +17,16 @@ function plot_x(model::Tapir_model)
         tp=model.mesh.inner_x*0.5*(t2-t1).+0.5*(t2+t1);
 
         for d=1:model.nx
-            scatter!(p,tp,x[d,:])
-            x(t) = (x[d,:]*L(2*(t)/(t2-t1)-(t2+t1)/(t2-t1), model.mesh.inner_x))[1]
-            plot!(p,x,t1,t2);
+            scatter!(p,tp,x[d,:],color=:red)
+            xf(t) = (x[d,:]'*L(2*(t)/(t2-t1)-(t2+t1)/(t2-t1), model.mesh.inner_x))[1]
+            plot!(p,xf,t1,t2,legend=false,color=:red);
         end
     end
     return p
 end
 
 function plot_u(model::Tapir_model)
-    p=plot();
+    p=Plots.plot();
     U=model.solution.U;
     T=model.solution.T;
     for i=1:model.mesh.N
@@ -42,16 +42,16 @@ function plot_u(model::Tapir_model)
         tp=model.mesh.inner_u*0.5*(t2-t1).+0.5*(t2+t1);
         
         for d=1:model.nu
-            scatter!(p,tp,u[d,:])
-            u(t) = (u[d,:]*L(2*(t)/(t2-t1)-(t2+t1)/(t2-t1), model.mesh.inner_u))[1]
-            plot!(p,u,t1,t2);
+            scatter!(p,tp,u[d,:],color=:black)
+            uf(t) = (u[d,:]'*L(2*(t)/(t2-t1)-(t2+t1)/(t2-t1), model.mesh.inner_u))[1]
+            plot!(p,uf,t1,t2,legend=false,color=:black);
         end
     end
     return p
 end
 
 function plot(model::Tapir_model)
-    p=plot(plot_x(model),plot_u(model), layout = (2, 1));
+    p=Plots.plot(plot_x(model),plot_u(model), layout = (2, 1));
     return p
 end
 
