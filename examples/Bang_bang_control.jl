@@ -32,7 +32,7 @@ end
 
 function path_ineq(x,dx,u,t)
     c1=u[1]-1;
-    c2=-1-u[1];
+    c2=-2-u[1];
     return [c1; c2]
 end
 

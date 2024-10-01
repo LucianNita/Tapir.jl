@@ -55,7 +55,7 @@ function update_settings!(model::Tapir_model)
         model.settings=Tapir_settings("feasibility","Ipopt");
     end
     if !isdefined(model,:mesh)
-        model.mesh=Tapir_mesh(3,2,1,5);
+        model.mesh=Tapir_mesh(10,2,1,5);
         set_length!(model)
         generate_quad!(model.mesh, model.settings.quad_type)
         generate_outer!(model.mesh, model.settings.outer_mesh_start)
