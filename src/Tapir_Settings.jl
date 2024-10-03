@@ -18,6 +18,6 @@ mutable struct Tapir_settings
     quad_tol::Float64   #quadrature tolerance 
     flex_tol::Float64   #flexible mesh tolerance
 
-    Tapir_settings(mode, solver; discretization="Collocation", flex_mesh=true, cont_type_x="same_var", cont_type_u="discontinuous", cost_type="path_cost", outer_mesh_start="equidistant", quad_type="gausslegendre", inner_mesh_type="cheb2", interpol="lagrange_bary", resid_tol=10^-6, solver_tol=10^-8, quad_tol=10^-10, flex_tol=0.01) = new(discretization, flex_mesh, cont_type_x, cont_type_u, cost_type, outer_mesh_start, quad_type, inner_mesh_type, interpol, mode, solver, resid_tol, solver_tol, quad_tol, flex_tol) #Basic constructor function with defaults
+    Tapir_settings(mode, solver; discretization="Inte_Res", flex_mesh=false, cont_type_x="same_var", cont_type_u="discontinuous", cost_type="path_cost", outer_mesh_start="equidistant", quad_type="gausslegendre", inner_mesh_type="cheb2", interpol="lagrange_bary", resid_tol=10^-6, solver_tol=10^-8, quad_tol=10^-10, flex_tol=0.01) = new(discretization, flex_mesh, cont_type_x, cont_type_u, cost_type, outer_mesh_start, quad_type, inner_mesh_type, interpol, mode, solver, resid_tol, solver_tol, quad_tol, flex_tol) #Basic constructor function with defaults
 end
 

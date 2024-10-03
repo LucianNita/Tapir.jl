@@ -55,7 +55,8 @@ function update_settings!(model::Tapir_model)
         model.settings=Tapir_settings("feasibility","Ipopt");
     end
     if !isdefined(model,:mesh)
-        model.mesh=Tapir_mesh(10,2,1,5);
+        model.mesh=Tapir_mesh(10,3,2,7);
+    end
         set_length!(model)
         generate_quad!(model.mesh, model.settings.quad_type)
         generate_outer!(model.mesh, model.settings.outer_mesh_start)
@@ -74,10 +75,9 @@ function update_settings!(model::Tapir_model)
             model.Uguess=ones(model.mesh.st_len_u*model.mesh.N);
         end
         if model.settings.flex_mesh==false
-            model.Tguess=[0.0,20.0];
+            model.Tguess=[0.0,3.1];
         else
             model.Tguess=[i/model.mesh.N for i=0:model.mesh.N];
         end
-    end
     return model;
 end

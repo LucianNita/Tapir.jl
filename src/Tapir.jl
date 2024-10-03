@@ -19,6 +19,7 @@ include("Tapir_Solution.jl");
 include("Tapir_Model.jl");
 include("Tapir_Solve.jl");
 include("Tapir_plotting.jl");
+include("Tapir_Checks.jl");
 
 
 

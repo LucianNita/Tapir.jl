@@ -99,12 +99,19 @@ function control_optimize!(model::Tapir_model)
     
     if model.settings.discretization_method=="Inte_Res"
         @constraint(model_JuMP,residual(X,U,T,model).<=model.settings.resid_tol)
-        @constraint(model_JuMP,residual(X,U,T,model).>=-model.settings.resid_tol)
+        #@constraint(model_JuMP,residual(X,U,T,model).>=-model.settings.resid_tol)
     elseif model.settings.discretization_method=="Collocation"
         @constraint(model_JuMP,collocation(X,U,T,model).<=model.settings.resid_tol)
-        @constraint(model_JuMP,collocation(X,U,T,model).>=-model.settings.resid_tol)
+        #@constraint(model_JuMP,collocation(X,U,T,model).>=-model.settings.resid_tol)
     end
-    @objective(model_JuMP,Min,model.terminal_cost(X[1:model.nx],X[end-model.nx+1:end],T[1],T[end]))
+    if model.settings.cost_type=="path_cost"
+        @objective(model_JuMP,Min,model.terminal_cost(X[1:model.nx],X[end-model.nx+1:end],T[1],T[end]))#+LGR_cost(X,U,T,model)
+    else
+        @objective(model_JuMP,Min,model.terminal_cost(X[1:model.nx],X[end-model.nx+1:end],T[1],T[end]))
+    end
+
+    set_optimizer_attribute(model_JuMP, "max_iter", 5000)
+    #set_optimizer_attribute(model_JuMP, "tol", 10^(-6))
 
     optimize!(model_JuMP)
 
@@ -145,6 +152,37 @@ function residual(X::Vector{Ty},U::Vector{Ty},T::Vector{Ty},model::Tapir_model) 
     return ir;
 end
 
+function LGR_cost(X::Vector{Ty},U::Vector{Ty},T::Vector{Ty},model::Tapir_model) where {Ty}
+    if Ty==VariableRef
+        o = 0.0;#zero(NonlinearExpr);
+    elseif Ty==Float64
+        o = 0.0;
+    end
+
+
+    for i=1:model.mesh.N
+        x=reshape(X[model.mesh.st_len_x*(i-1)+1:model.mesh.st_len_x*(i-1)+model.nx*(model.mesh.Px+1)],(model.nx,model.mesh.Px+1))
+        u=reshape(U[model.mesh.st_len_u*(i-1)+1:model.mesh.st_len_u*(i-1)+model.nu*(model.mesh.Pu+1)],(model.nu,model.mesh.Pu+1))
+
+        if model.settings.flex_mesh
+            t1=T[i];
+            t2=T[i+1];
+        else
+            t1=model.mesh.outer_mesh[i]*0.5*(T[2]-T[1])+0.5*(T[2]+T[1]);
+            t2=model.mesh.outer_mesh[i+1]*0.5*(T[2]-T[1])+0.5*(T[2]+T[1]);
+        end
+
+        dx=x*model.mesh.Dx*model.mesh.evalQX*2.0./(t2-t1);
+        x=x*model.mesh.evalQX;
+        u=u*model.mesh.evalQU;
+
+        qp=model.mesh.quad_pts*0.5*(t2-t1).+0.5*(t2+t1);
+        qw=model.mesh.quad_weights*0.5*(t2-t1);
+
+        o+=sum(qw[k]*model.path_cost(dx[:,k],x[:,k],u[:,k],qp[k]).^2 for k in eachindex(qp))
+    end
+    return o;
+end
 
 function collocation(X::Vector{Ty},U::Vector{Ty},T::Vector{Ty},model::Tapir_model) where {Ty}
     if Ty==VariableRef
@@ -171,7 +209,7 @@ function collocation(X::Vector{Ty},U::Vector{Ty},T::Vector{Ty},model::Tapir_mode
 
         ip=model.mesh.inner_x*0.5*(t2-t1).+0.5*(t2+t1);
         for k in eachindex(ip)
-            colloc[:,(i-1)*(model.mesh.Px+1)+k]=model.path_eq_const(dx[:,k],x[:,k],u[:,k],ip[k]) 
+            colloc[:,(i-1)*(model.mesh.Px+1)+k]=model.path_eq_const(dx[:,k],x[:,k],u[:,k],ip[k]).^2
         end
     end
     return colloc;
