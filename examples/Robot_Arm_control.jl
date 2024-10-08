@@ -39,6 +39,7 @@ function path_ineq(x,dx,u,t)
     return [c1; c2; c3; c4]
 end
 
+#=
 model=Tapir_model(5,2);
 model.mesh=Tapir_mesh(200,3,2,7)
 model.settings=Tapir_settings("feasibility","Ipopt",discretization="Inte_Res",resid_tol=5.0*10^(-8));
@@ -57,3 +58,34 @@ update_settings!(model);
 control_optimize!(model);
 
 plot(model);
+=#
+
+#Plots.scatter()
+for N=5:10
+model2=Tapir_model(5,2);
+model2.mesh=Tapir_mesh(N,3,2,7)
+model2.settings=Tapir_settings("feasibility","Ipopt",discretization="Inte_Res",flex_mesh=false, resid_tol=10^(-4)/N);
+
+add_pathcost!(model2, Lgr_cost);
+add_boundarycost!(model2, Mayer_cost);
+
+add_path_eq_constr!(model2, F);
+add_path_ineq_constr!(model2, path_ineq);
+
+add_boundary_eq_constr!(model2, boundary_eq);
+add_boundary_ineq_constr!(model2, boundary_ineq);
+
+update_settings!(model2);
+#feasibility_optimize!(model);
+control_optimize!(model2);
+
+if N==5
+    lbl="Integrated residuals & Fixed mesh"#Integrated residuals & Flexible mesh"#Integrated residuals
+else
+    lbl=""
+end
+Plots.scatter!([model2.solution.time],[accuracy_check(model2,model)],color=:blue,marker=:rect,label=lbl);#marker=, legend=false);,marker=:rect
+end
+#Tapir.plot(model2);,,1/N,model2.solution.objective
+#xlabel!("1/N");
+#ylabel!("Optimal cost")

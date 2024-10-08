@@ -37,6 +37,8 @@ function path_ineq(x,dx,u,t)
 end
 
 model=Tapir_model(2,1);
+model.mesh=Tapir_mesh(9,2,1,5)
+model.settings=Tapir_settings("feasibility","Ipopt",discretization="Collocation",flex_mesh=false,resid_tol=10^(-4)/N);
 
 add_pathcost!(model, Lgr_cost);
 add_boundarycost!(model, Mayer_cost);

@@ -11,7 +11,7 @@ export Tapir_model, feasibility_optimize!, control_optimize!,
     add_boundary_eq_constr!,add_boundary_ineq_constr!,
     update_settings!, plot_solution,
     Tapir_settings,  Tapir_mesh,
-    plot
+    plot, eval_X, eval_U, accuracy_check
 
 include("Tapir_Settings.jl");
 include("Tapir_Mesh.jl");

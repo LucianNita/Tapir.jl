@@ -50,7 +50,7 @@ function add_boundary_ineq_constr!(model, b_ineq)
     model.boundary_ineq_const=b_ineq;
 end
 
-function update_settings!(model::Tapir_model)
+function update_settings!(model::Tapir_model;ws=false)
     if !isdefined(model,:settings)
         model.settings=Tapir_settings("feasibility","Ipopt");
     end
@@ -63,21 +63,39 @@ function update_settings!(model::Tapir_model)
         generate_interpolation_mesh!(model.mesh,model.settings.inner_mesh_type)
         generate_interpolation!(model.mesh,model.settings.interpolation_type)
         model.mesh_hist=[model.mesh];
-
-        if model.settings.cont_type_x=="same_var"
-            model.Xguess=ones(model.mesh.st_len_x*model.mesh.N+model.nx);
+        if ws
+            if model.settings.cont_type_x=="same_var"
+                model.Xguess=zeros(model.mesh.st_len_x*model.mesh.N+model.nx);
+            else
+                model.Xguess=zeros(model.mesh.st_len_x*model.mesh.N);
+            end
+            if model.settings.cont_type_u=="same_var"
+                model.Uguess=zeros(model.mesh.st_len_u*model.mesh.N+model.nu);
+            else
+                model.Uguess=zeros(model.mesh.st_len_u*model.mesh.N);
+            end
+            if model.settings.flex_mesh==false
+                model.Tguess=[0.0,3.1];
+            else
+                model.Tguess=[3.1*i/model.mesh.N for i=0:model.mesh.N];
+            end
         else
-            model.Xguess=ones(model.mesh.st_len_x*model.mesh.N);
-        end
-        if model.settings.cont_type_u=="same_var"
-            model.Uguess=ones(model.mesh.st_len_u*model.mesh.N+model.nu);
-        else
-            model.Uguess=ones(model.mesh.st_len_u*model.mesh.N);
-        end
-        if model.settings.flex_mesh==false
-            model.Tguess=[0.0,3.1];
-        else
-            model.Tguess=[i/model.mesh.N for i=0:model.mesh.N];
+            if model.settings.cont_type_x=="same_var"
+                model.Xguess=zeros(model.mesh.st_len_x*model.mesh.N+model.nx);
+            else
+                model.Xguess=zeros(model.mesh.st_len_x*model.mesh.N);
+            end
+            if model.settings.cont_type_u=="same_var"
+                model.Uguess=zeros(model.mesh.st_len_u*model.mesh.N+model.nu);
+            else
+                model.Uguess=zeros(model.mesh.st_len_u*model.mesh.N);
+            end
+            if model.settings.flex_mesh==false
+                model.Tguess=[0.0,3.1];
+            else
+                model.Tguess=[3.1*i/model.mesh.N for i=0:model.mesh.N];
+            end
         end
     return model;
 end
+
