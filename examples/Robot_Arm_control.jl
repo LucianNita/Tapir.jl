@@ -59,33 +59,67 @@ control_optimize!(model);
 
 plot(model);
 =#
+function run()
+    #Plots.scatter()
+    Nruns=1;
+    Nstart=8;
+    Nend=10;
+    mk=:dtriangle;
+    clr=:orange;
+    lbl=""#Integrated residual flexible mesh"
+    disc="Collocation"
+    fm=true;
+    wst=false;
+    xtot=zeros(Nend-Nstart+1);
+    ytot=zeros(Nend-Nstart+1);
 
-#Plots.scatter()
-for N=5:10
-model2=Tapir_model(5,2);
-model2.mesh=Tapir_mesh(N,3,2,7)
-model2.settings=Tapir_settings("feasibility","Ipopt",discretization="Inte_Res",flex_mesh=false, resid_tol=10^(-4)/N);
+    for run=1:Nruns
+        xplot=[];
+        yplot=[];
 
-add_pathcost!(model2, Lgr_cost);
-add_boundarycost!(model2, Mayer_cost);
+        N=Nstart;
+        model2=Tapir_model(5,2);
+        model2.mesh=Tapir_mesh(N,3,2,7)
+        model2.settings=Tapir_settings("feasibility","Ipopt",discretization=disc,flex_mesh=fm, resid_tol=10^(-4)/N);
 
-add_path_eq_constr!(model2, F);
-add_path_ineq_constr!(model2, path_ineq);
+        add_pathcost!(model2, Lgr_cost);
+        add_boundarycost!(model2, Mayer_cost);
 
-add_boundary_eq_constr!(model2, boundary_eq);
-add_boundary_ineq_constr!(model2, boundary_ineq);
+        add_path_eq_constr!(model2, F);
+        add_path_ineq_constr!(model2, path_ineq);
 
-update_settings!(model2);
-#feasibility_optimize!(model);
-control_optimize!(model2);
+        add_boundary_eq_constr!(model2, boundary_eq);
+        add_boundary_ineq_constr!(model2, boundary_ineq);
 
-if N==5
-    lbl="Integrated residuals & Fixed mesh"#Integrated residuals & Flexible mesh"#Integrated residuals
-else
-    lbl=""
+        update_settings!(model2);
+
+        #feasibility_optimize!(model);
+        control_optimize!(model2);
+
+        push!(xplot,1/N);
+        push!(yplot,model2.solution.objective);
+        #Plots.scatter!([model2.solution.time],[accuracy_check(model2,model)],color=clr,marker=mk,label=lbl);#marker=, legend=false);,marker=:rect
+
+        for N=Nstart+1:Nend
+            model2.mesh=Tapir_mesh(N,3,2,7)
+            model2.settings=Tapir_settings("feasibility","Ipopt",discretization=disc,flex_mesh=fm, resid_tol=10^(-4)/N);
+
+            update_settings!(model2,ws=wst);
+
+            #feasibility_optimize!(model);
+            control_optimize!(model2);
+
+            push!(xplot,1/N);
+            push!(yplot,model2.solution.objective);
+            #Plots.scatter!([model2.solution.time],[accuracy_check(model2,model)],color=clr,marker=mk,label="");#marker=, legend=false);,marker=:rect
+        end
+        xtot+=xplot;
+        ytot+=yplot;
+    end
+
+    scatter!(xtot/Nruns,ytot/Nruns,color=clr,marker=mk,label=lbl);
+
+    #Tapir.plot(model2);,,1/N,model2.solution.objective,accuracy_check(model2,model)
+    xlabel!("1/N");
+    ylabel!("Optimal cost");#Total absolute error ϵₜ");
 end
-Plots.scatter!([model2.solution.time],[accuracy_check(model2,model)],color=:blue,marker=:rect,label=lbl);#marker=, legend=false);,marker=:rect
-end
-#Tapir.plot(model2);,,1/N,model2.solution.objective
-#xlabel!("1/N");
-#ylabel!("Optimal cost")

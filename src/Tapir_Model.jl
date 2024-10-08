@@ -50,6 +50,21 @@ function add_boundary_ineq_constr!(model, b_ineq)
     model.boundary_ineq_const=b_ineq;
 end
 
+function incremented_T_guess(old_mesh,new_N)
+    T_new=zeros(new_N+1);
+    old_N=length(old_mesh)-1;
+    if old_N+1!=new_N
+        warning("step larger than 1, redirecting to the main function")
+        return get_T_guess(old_mesh,new_N)
+    end
+    interval_lengths=diff(old_mesh);
+    ~, index = findmax(interval_lengths);
+    T_new[1:index]=copy(old_mesh[1:index]); #deep?
+    T_new[index+1]=0.5*(old_mesh[index]+old_mesh[index+1]);
+    T_new[index+2:end]=copy(old_mesh[index+1:end]);
+    return T_new;
+end
+
 function update_settings!(model::Tapir_model;ws=false)
     if !isdefined(model,:settings)
         model.settings=Tapir_settings("feasibility","Ipopt");
@@ -63,39 +78,55 @@ function update_settings!(model::Tapir_model;ws=false)
         generate_interpolation_mesh!(model.mesh,model.settings.inner_mesh_type)
         generate_interpolation!(model.mesh,model.settings.interpolation_type)
         model.mesh_hist=[model.mesh];
-        if ws
-            if model.settings.cont_type_x=="same_var"
-                model.Xguess=zeros(model.mesh.st_len_x*model.mesh.N+model.nx);
+
+        if model.settings.cont_type_x=="same_var"
+            model.Xguess=zeros(model.mesh.st_len_x*model.mesh.N+model.nx);
+        else
+            model.Xguess=zeros(model.mesh.st_len_x*model.mesh.N);
+        end
+        if model.settings.cont_type_u=="same_var"
+            model.Uguess=zeros(model.mesh.st_len_u*model.mesh.N+model.nu);
+        else
+            model.Uguess=zeros(model.mesh.st_len_u*model.mesh.N);
+        end
+
+        if ws && isdefined(model,:solution)
+            if model.settings.flex_mesh
+                model.Tguess=incremented_T_guess(model.solution.T,model.mesh.N);#[3.1*i/model.mesh.N for i=0:model.mesh.N];
             else
-                model.Xguess=zeros(model.mesh.st_len_x*model.mesh.N);
+                model.Tguess=model.solution.T;
             end
-            if model.settings.cont_type_u=="same_var"
-                model.Uguess=zeros(model.mesh.st_len_u*model.mesh.N+model.nu);
-            else
-                model.Uguess=zeros(model.mesh.st_len_u*model.mesh.N);
-            end
-            if model.settings.flex_mesh==false
-                model.Tguess=[0.0,3.1];
-            else
-                model.Tguess=[3.1*i/model.mesh.N for i=0:model.mesh.N];
+            
+            crtx=0;
+            crtu=0;
+            for i=1:model.mesh.N
+                t1=model.Tguess[i];
+                t2=model.Tguess[i+1];
+                ipx=model.mesh.inner_x*0.5*(t2-t1).+0.5*(t2+t1);
+                ipu=model.mesh.inner_u*0.5*(t2-t1).+0.5*(t2+t1);
+                for j in eachindex(ipx)
+                    if model.settings.cont_type_x=="same_var" && i!=1 
+                        continue
+                    end
+                    model.Xguess[crtx+1:crtx+model.nx]=eval_X(model,ipx[j])
+                    crtx+=model.nx;
+                end
+                for j in eachindex(ipu)
+                    if model.settings.cont_type_u=="same_var" && i!=1 
+                        continue
+                    end
+                    model.Uguess[crtu+1:crtu+model.nu]=eval_U(model,ipu[j])
+                    crtu+=model.nu;
+                end
             end
         else
-            if model.settings.cont_type_x=="same_var"
-                model.Xguess=zeros(model.mesh.st_len_x*model.mesh.N+model.nx);
-            else
-                model.Xguess=zeros(model.mesh.st_len_x*model.mesh.N);
-            end
-            if model.settings.cont_type_u=="same_var"
-                model.Uguess=zeros(model.mesh.st_len_u*model.mesh.N+model.nu);
-            else
-                model.Uguess=zeros(model.mesh.st_len_u*model.mesh.N);
-            end
-            if model.settings.flex_mesh==false
-                model.Tguess=[0.0,3.1];
-            else
+            if model.settings.flex_mesh
                 model.Tguess=[3.1*i/model.mesh.N for i=0:model.mesh.N];
+            else
+                model.Tguess=[0.0,3.1];
             end
         end
+
     return model;
 end
 
